@@ -1,8 +1,9 @@
 package com.gaumala.shoppinglist
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
-import android.arch.lifecycle.ViewModel
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
 import com.gaumala.shoppinglist.utils.ListDiff
 import com.gaumala.shoppinglist.utils.Undoable
 import com.gaumala.shoppinglist.utils.VirtualList
@@ -13,6 +14,8 @@ class ShoppingListViewModel : ViewModel() {
 
     val liveItems: LiveData<ListDiff?> =
         Transformations.map(state.liveItems) { diff -> diff }
+
+    val liveSuggestions: LiveData<List<String>> = state.liveSuggestions
 
     val items: VirtualList<ShoppingItem>
         get() = state.liveItems
@@ -45,6 +48,14 @@ class ShoppingListViewModel : ViewModel() {
     fun undo() {
         state.lastUndoable?.undo()
         state.lastUndoable = null
+    }
+
+    fun onTextInputChanged(text: String) {
+        Log.d("debug", "onTextInputChanged $text")
+        if (text.startsWith("gui"))
+            state.liveSuggestions.value = listOf("guineo")
+        else
+            state.liveSuggestions.value = emptyList()
     }
 
     inner class Remove(private val position: Int,

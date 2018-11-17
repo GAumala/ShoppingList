@@ -1,11 +1,13 @@
 package com.gaumala.shoppinglist
 
-import android.arch.lifecycle.Observer
-import android.support.design.widget.Snackbar
-import android.support.v4.app.FragmentActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.helper.ItemTouchHelper
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.lifecycle.Observer
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.ItemTouchHelper
 import android.widget.Button
 import android.widget.EditText
 import com.gaumala.shoppinglist.utils.ListDiff
@@ -15,29 +17,59 @@ class ShoppingListView(act: FragmentActivity,
                        private val model: ShoppingListViewModel) {
         private val textInput: EditText = act.findViewById(R.id.text_input)
         private val buttonInput: Button = act.findViewById(R.id.button_input)
-        private val items = act.findViewById<RecyclerView>(R.id.recyclerview)
+        private val items = act.findViewById<RecyclerView>(R.id.items_recycler)
+        private val suggestions =
+            act.findViewById<RecyclerView>(R.id.suggestions_recycler)
+
+
+        private val onNewItemSubmitted: (String) -> Unit = {
+            model.onNewItemSubmitted(it)
+            textInput.text.clear()
+        }
+
         init {
-            val viewAdapter = ShoppingListAdapter(model)
-            setupRecyclerView(items, viewAdapter) { pos ->
+            val itemsAdapter = ShoppingListAdapter(model)
+            setupRecyclerView(items, itemsAdapter) { pos ->
                 model.onItemRemoved(pos)
             }
+            val suggestionsAdapter =
+                ShoppingItemSuggestionsAdapter(onNewItemSubmitted)
+            setupRecyclerView(suggestions, suggestionsAdapter, null)
 
             model.liveItems.observe(act, Observer { diff ->
                 when (diff) {
-                    is ListDiff.Reload -> viewAdapter.notifyDataSetChanged()
-                    is ListDiff.Add -> viewAdapter.notifyItemInserted(diff.position)
-                    is ListDiff.Change -> viewAdapter.notifyItemChanged(diff.position)
+                    is ListDiff.Reload -> itemsAdapter.notifyDataSetChanged()
+                    is ListDiff.Add ->
+                        itemsAdapter.notifyItemInserted(diff.position)
+                    is ListDiff.Change ->
+                        itemsAdapter.notifyItemChanged(diff.position)
                     is ListDiff.Remove -> {
-                        viewAdapter.notifyItemRemoved(diff.position)
+                        itemsAdapter.notifyItemRemoved(diff.position)
                         showUndoSnackbar(R.string.item_removed)
                     }
                 }
             })
 
+            model.liveSuggestions.observe(act, Observer { newSuggestions ->
+                suggestionsAdapter.suggestions = newSuggestions
+            })
+
             buttonInput.setOnClickListener {
-                model.onNewItemSubmitted(textInput.text.toString())
-                textInput.text.clear()
+                onNewItemSubmitted(textInput.text.toString())
             }
+
+            textInput.addTextChangedListener(object: TextWatcher {
+                override fun afterTextChanged(p0: Editable?) {
+                }
+
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                }
+
+                override fun onTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {
+                    model.onTextInputChanged(p0.toString())
+                }
+
+            })
 
         }
 
@@ -51,8 +83,8 @@ class ShoppingListView(act: FragmentActivity,
 
     companion object {
         private fun setupRecyclerView(recyclerView: RecyclerView,
-                                      shoppingListAdapter: RecyclerView.Adapter<*>,
-                                      onItemSwiped: (Int) -> Unit) {
+                                      recyclerAdapter: RecyclerView.Adapter<*>,
+                                      onItemSwiped: ((Int) -> Unit)?) {
             val ctx = recyclerView.context
             val viewManager = LinearLayoutManager(ctx)
             recyclerView.apply {
@@ -62,9 +94,10 @@ class ShoppingListView(act: FragmentActivity,
                 // use a linear layout manager
                 layoutManager = viewManager
                 // specify an viewAdapter (see also next example)
-                adapter = shoppingListAdapter
+                adapter = recyclerAdapter
 
                 // enable swiping
+                if (onItemSwiped != null)
                 ItemTouchHelper(SwipeLeftToDeleteCallback(onItemSwiped))
                     .attachToRecyclerView(this)
             }

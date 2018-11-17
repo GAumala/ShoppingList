@@ -4,7 +4,7 @@ import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldEqual
 import org.junit.Before
 import org.junit.Test
-import android.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.gaumala.shoppinglist.utils.ListDiff
 import org.junit.Rule
 

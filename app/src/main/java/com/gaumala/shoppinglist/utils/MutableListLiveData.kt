@@ -1,6 +1,6 @@
 package com.gaumala.shoppinglist.utils
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 
 class MutableListLiveData<T>(): LiveData<ListDiff>(), VirtualList<T> {
 
