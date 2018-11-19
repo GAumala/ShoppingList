@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class ShoppingItemSuggestionsAdapter(private val onNewItemSubmitted: (String)->Unit) :
+class ShoppingItemSuggestionsAdapter(
+    private val onNewItemSubmitted: (ShoppingItemSuggestion) -> Unit) :
     RecyclerView.Adapter<ShoppingItemSuggestionsAdapter.ViewHolder>() {
 
-    var suggestions: List<String> = emptyList()
+    var suggestions: List<ShoppingItemSuggestion> = emptyList()
         set (value) {
             field = value
             notifyDataSetChanged()
@@ -38,7 +39,7 @@ class ShoppingItemSuggestionsAdapter(private val onNewItemSubmitted: (String)->U
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = suggestions[position]
-        holder.textView.text = item
+        holder.textView.text = item.name
         holder.textView.setOnClickListener {
             onNewItemSubmitted(item)
         }

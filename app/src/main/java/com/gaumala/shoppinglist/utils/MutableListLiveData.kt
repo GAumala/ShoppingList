@@ -42,6 +42,10 @@ class MutableListLiveData<T>(): LiveData<ListDiff>(), VirtualList<T> {
 
     }
 
+    fun any(p: (T) -> Boolean): Boolean {
+        return items.any(p)
+    }
+
     override val size: Int
         get() = items.size
 

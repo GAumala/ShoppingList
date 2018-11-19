@@ -22,8 +22,8 @@ class ShoppingListView(act: FragmentActivity,
             act.findViewById<RecyclerView>(R.id.suggestions_recycler)
 
 
-        private val onNewItemSubmitted: (String) -> Unit = {
-            model.onNewItemSubmitted(it)
+        private val onNewItemSubmitted: (ShoppingItemSuggestion) -> Unit = {
+            model.onSuggestionChosen(it)
             textInput.text.clear()
         }
 
@@ -55,7 +55,8 @@ class ShoppingListView(act: FragmentActivity,
             })
 
             buttonInput.setOnClickListener {
-                onNewItemSubmitted(textInput.text.toString())
+                model.onNewItemSubmitted(textInput.text.toString())
+                textInput.text.clear()
             }
 
             textInput.addTextChangedListener(object: TextWatcher {
